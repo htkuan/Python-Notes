@@ -16,3 +16,5 @@ Main learning resources:
 * [functools](https://github.com/htkuan/python_notes/blob/master/functools.ipynb)
 * [abc](https://github.com/htkuan/python_notes/blob/master/abc.ipynb)
 * [Multiprocessing](https://github.com/htkuan/python_notes/blob/master/Multiprocessing.ipynb)
+* [generator](https://github.com/htkuan/python_notes/blob/master/generator.ipynb)
+* [asyncio](https://github.com/htkuan/Python-Notes/tree/master/asyncio)
