@@ -10,11 +10,15 @@
 
 把控制流讓出來給別的程式執行，並且等待回覆後續處理的過程。
 
+asyncio 透過 event loop & coroutines & futures 來構造並發的能力！
+
 這篇教學是參考 [此教程](https://segmentfault.com/a/1190000008814676) 寫得非常棒，大家也可以去看看！
 
 ## async
 
-定義 coroutine
+定義 coroutine，它是一個特別的函數，類似於 python 中的 generators，
+
+可以利用 await 來掛起控制流，並且把控制流歸還給 event loop 調度，
 
 在 def 前加上 async
 
@@ -26,6 +30,14 @@
 
 ## await
 
+什麼是 future？ 
+
+為了執行 coroutine 我們必須把它註冊到 event loop 中，讓 event loop 調度，
+
+而 coroutine 註冊進 event loop 時會被包裝成一個 task，而 future 就代表了這個 task 的結果。
+
+這個結果可能是被執行的結果，或者尚未被執行的又或者他可能是一個被執行後拋出的例外！
+
 await 做了什麼:
 * 等待一個 future 結束
 * 等待另一個協程（產生一個結果，或引發一個異常）
@@ -34,7 +46,11 @@ await 做了什麼:
 
 ## event loop
 
-要運行協程，要先有一個 event loop
+要運行協程，要先有一個 event loop，
+
+event loop 實質上就是用來管理和分配不同 tasks 的執行，
+
+把所有的 tasks 註冊給 event loop，讓 event loop 調度控制流程，
 
 可以透過 asyncio.get_event_loop() 來得到一個 event loop!
 
@@ -173,3 +189,15 @@ t = timer(3, lambda futu: print('Done'))
 ```
 
 可以試著看一下 timer.py 腳本，並且運行看看！
+
+## flow of control
+
+1. the event loop is running in a thread
+2. the event loop get a task from queue
+3. run coroutine1 from task1
+4. coroutine1 call another coroutine( await <coroutine> )
+5. I/O blocking or not:
+    * yes: current coroutine1 gets suspended and control is passed back to the event loop.
+    * no: current coroutine1 gets suspended and context switch occurs.
+6. event loop gets next task from queue2, ...n
+7. then the event loop goes back to task 1 from where it left off
