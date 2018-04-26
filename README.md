@@ -18,3 +18,4 @@ Main learning resources:
 * [Multiprocessing](https://github.com/htkuan/python_notes/blob/master/Multiprocessing.ipynb)
 * [generator](https://github.com/htkuan/python_notes/blob/master/generator.ipynb)
 * [asyncio](https://github.com/htkuan/Python-Notes/tree/master/asyncio)
+* [super()](https://github.com/htkuan/Python-Notes/tree/master/super.ipynb)
