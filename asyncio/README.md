@@ -2,17 +2,146 @@
 
 首先因為 GIL 的關係，python 在單進程(process)的情況下，
 
-線程(thread)無法並行(parallelism)，但是可以並發(concurrency)，
+線程(thread)無法真正的並行(parallelism)，但是可以並發(concurrency)，
 
 而多線程的並發在切換線程時，需要耗費較大的資源，
 
-所以發展了協程(coroutine)的概念，即在單一線程下，當遇到I/O阻塞的時候，
+所以發展了協程(co-routine)的概念，即在單一線程下，當遇到I/O阻塞的時候，
 
 把控制流讓出來給別的程式執行，並且等待回覆後續處理的過程。
 
 asyncio 透過 event loop & coroutines & futures 來構造並發的能力！
 
 這篇教學是參考 [此教程](https://segmentfault.com/a/1190000008814676) 寫得非常棒，大家也可以去看看！
+
+## Coroutine
+
+在 python 中，coroutine 是借用了 Generator 的特性來實現，
+
+利用 yield 可以暫停執行並且向外返回數據，以及 send() 方法向 generator 發送數據等特性，
+
+實現了 coroutine 遇到 I/O 阻塞時可以讓出執行流，和等待 I/O 完成時再繼續執行等，
+
+在 python 3.4 可以利用 @asyncio.coroutine 的 decorator 來定義，
+
+然而在 python 3.5 之後則是直接在，function 前面加入 async 即可:
+
+ex. coroutine.py
+```python
+import asyncio
+
+
+async def is_coroutine1(sec):
+    print(f'sleep {sec} second')
+    await asyncio.sleep(sec)
+    print('done')
+
+
+@asyncio.coroutine
+def is_coroutine2(sec):
+    print(f'sleep {sec} second')
+    yield from asyncio.sleep(sec)
+    print('done')
+
+
+print(asyncio.iscoroutinefunction(is_coroutine1))  # True
+print(asyncio.iscoroutinefunction(is_coroutine2))  # True
+print(asyncio.iscoroutine(is_coroutine1))  # False
+print(asyncio.iscoroutine(is_coroutine2))  # False
+
+coroutine_obj = is_coroutine1(5)  # 調用 async def 函數會返回一個 coroutine object
+
+print(asyncio.iscoroutine(coroutine_obj))  # True
+
+# 出現警告，因為並沒有辦法直接運行 coroutine object
+# sys:1: RuntimeWarning: coroutine 'is_coroutine1' was never awaited
+```
+
+## Future
+
+Future 顧名思義代表著未來對象，也就是用來儲存 coroutine 的 I/O 的結果，
+
+所以在 asyncio 中的 class Future，有 result() 和 set_result() 方法用來儲存結果，
+
+也有 add_done_callback() 方法，來添加 callback，
+
+所以一般來說在註冊 coroutine 到 event loop 時，會用 future 打包 coroutine:
+
+ex. future_callback.py
+```python
+import asyncio
+
+
+async def is_coroutine(sec):
+    print(f'sleep {sec} second')
+    await asyncio.sleep(sec)
+
+
+def callback(future):
+    print(type(future))
+    print('Done')
+
+# 把 coroutine 包成 future
+future = asyncio.ensure_future(is_coroutine(3))
+# 添加 callback 到 future
+future.add_done_callback(callback)
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(future)
+```
+## Task
+
+有了 coroutine 可以遇到I/O時掛起讓出執行流，又有 future 可以儲存 coroutine 異步調用結果，
+
+好像還缺了什麼？ 要怎麼恢復執行呢？
+
+那就建立角色來負責管理 coroutine 的狀態吧，就叫做 Task!
+
+Task 繼承了 Future，並且利用其 *_stop()*  方法 ， 在 Event loop 管理 coroutine 狀態，
+
+stop() 會調用 generator send() 方法來驅動 coroutine (喚醒)，
+
+括遇到 blocking 時 coroutine 得執行，得到結果時 set_result 和調用 callback 以及下一個 future
+
+ex. create_task.py
+```python
+import asyncio
+
+
+async def is_coroutine(sec):
+    print(f'sleep {sec} second')
+    await asyncio.sleep(sec)
+
+
+loop = asyncio.get_event_loop()
+
+# 其實這裡與 future_callback.py 並沒有什麼差別
+# 因為 run_until_complete() 接收到 future 時也會自動封裝成 task
+# 事實上直接傳一個 coroutine 也可以
+task = loop.create_task(is_coroutine(3))
+loop.run_until_complete(task)
+```
+
+## Event loop
+
+在 python 中，要執行 coroutine 只有兩種方法，第一種是註冊到 event loop 中的 coroutine，
+
+另一種是從一個運行中的 coroutine 去調用下一個(await) coroutine，
+
+而事件循環本質上是一個程序運行時開啟的無限循環，把程序(coroutine)註冊進去後，
+
+當滿足某些事件時，會調用相應的程序，所以叫做 "事件循環"，
+
+可以透過 asyncio.get_event_loop() 來得到一個 event loop!
+
+然後調用這個阻塞式的函數 run_until_complete() 來得到結果，
+
+***run_until_complete 會把所有協程運行完畢才回傳結果***
+
+run_until_complete() 所接的參數是 future，而為什麼我們把 coroutine 對象傳進去，
+
+也不會有問題是因為，函數內部透過 ensure_future 檢查，把協程對象包裝(wrap)成了future
+
 
 ## async
 
@@ -43,51 +172,6 @@ await 做了什麼:
 * 等待另一個協程（產生一個結果，或引發一個異常）
 * 產生一個結果給正在等它的協程
 * 引發一個異常給正在等它的協程
-
-## event loop
-
-要運行協程，要先有一個 event loop，
-
-event loop 實質上就是用來管理和分配不同 tasks 的執行，
-
-把所有的 tasks 註冊給 event loop，讓 event loop 調度控制流程，
-
-可以透過 asyncio.get_event_loop() 來得到一個 event loop!
-
-然後調用這個阻塞式的函數 run_until_complete() 來得到結果
-
-***run_until_complete 會把所有協程運行完畢才回傳結果***
-
-ex.
-```python
-import asyncio
-
-async def is_coroutine(x):
-    print(f'sleep {x} second')
-    await asyncio.sleep(x)
-    print('done')
-    
-loop = asyncio.get_event_loop()
-loop.run_until_complete(is_coroutine(5))
-```
-
-run_until_complete() 所接的參數是 future，而為什麼我們把 coroutine 對象傳進去，
-
-也不會有問題是因為，函數內部透過 ensure_future 檢查，把協程對象包裝(wrap)成了future
-
-所以寫的正確一點應該是:
-
-```python
-loop.run_until_complete(asyncio.ensure_future(is_coroutine(5)))
-```
-
-p.s. 我們有提到 await 跟 coroutine 的關係，再看看上述範例的 await asyncio.sleep(x)，
-
-你就可以知道，asyncio.sleep(x)，本身其實就是一個 coroutine！
-
-## callback
-
-future 對象，可以透過 add_done_callback 函數，給 callback！
 
 ## 多個協程
 

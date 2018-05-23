@@ -1,9 +1,9 @@
 import asyncio
 
 
-async def is_coroutine(x):
-    print(f'sleep {x} second')
-    await asyncio.sleep(x)
+async def is_coroutine(sec):
+    print(f'sleep {sec} second')
+    await asyncio.sleep(sec)
 
 
 def callback(future):
