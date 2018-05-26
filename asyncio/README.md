@@ -12,11 +12,9 @@
 
 asyncio 透過 event loop & coroutines & futures 來構造並發的能力！
 
-這篇教學是參考 [此教程](https://segmentfault.com/a/1190000008814676) 寫得非常棒，大家也可以去看看！
-
 ## Coroutine
 
-在 python 中，coroutine 是借用了 Generator 的特性來實現，
+在 python 中，coroutine 是借用了 generator 的特性來實現，
 
 利用 yield 可以暫停執行並且向外返回數據，以及 send() 方法向 generator 發送數據等特性，
 
@@ -124,11 +122,7 @@ loop.run_until_complete(task)
 
 ## Event loop
 
-在 python 中，要執行 coroutine 只有兩種方法，第一種是註冊到 event loop 中的 coroutine，
-
-另一種是從一個運行中的 coroutine 去調用下一個(await) coroutine，
-
-而事件循環本質上是一個程序運行時開啟的無限循環，把程序(coroutine)註冊進去後，
+而事件循環本質上是一個程序運行時開啟的無限循環，把 coroutine 註冊進去後，
 
 當滿足某些事件時，會調用相應的程序，所以叫做 "事件循環"，
 
@@ -136,30 +130,87 @@ loop.run_until_complete(task)
 
 然後調用這個阻塞式的函數 run_until_complete() 來得到結果，
 
+在 python 中，要執行 coroutine 有兩種方法，第一種是 coroutine 把註冊到 event loop 中，
+
+並且運行 event loop ，此時事件循環會透過 Task 來調用 coroutine，
+
+另一種是從一個運行中的 coroutine 去調用下一個(await) coroutine，
+
 ***run_until_complete 會把所有協程運行完畢才回傳結果***
 
 run_until_complete() 所接的參數是 future，而為什麼我們把 coroutine 對象傳進去，
 
-也不會有問題是因為，函數內部透過 ensure_future 檢查，把協程對象包裝(wrap)成了future
+也不會有問題是因為，函數內部透過 ensure_future 檢查，把協程對象包裝(wrap)成了future，
+
+要注意的是，需要讓 event loop 接受到 "事件"，才能在 I/O 時被掛起，然後繼續調用下一個 coroutine，
+
+所以大家可以來看看以下的腳本，到底會執行多久，三個 event loop 到最後都會 await 兩個 sleep 的 sleep 函數，
+
+一個 sleep 1 秒，一個 sleep 3 秒，在不阻塞的情況下，總執行時間應該會是接近 3 秒，如果是阻塞就會是 4 秒！
+
+透過下面的三個 event loop 比較相信大家可以感受到，什麼樣的配置才能夠不阻塞！
+
+首先 loop1 裡面有兩個 coroutine1 & coroutine2，他們都各自 await 一個 sleep 的 coroutine，
+
+所以先運行 coroutine1 然後 await sleep 時遇到 I/O 於是掛起，Task 調用 step()，
+
+就會換執行 coroutine2，然後又遇到 await sleep，即可達成不阻塞;
+
+而 loop2 只註冊了一個 coroutine3，然後 coroutine3 裡面接連的 await 兩個 sleep 函數，
+
+當 loop2 開始運行調用 coroutine3 然後 await 第一個 I/O 被掛起，但是這時並沒有下一個 await 的 sleep，
+
+並沒有辦法被 Task 的 step() 調用到，因為被上一個 await 阻塞了，所以這樣的配置並無法達成非阻塞的調用，
+
+***這點要非常的注意!!***
+
+再來是 loop3，註冊了 coroutine4，而這時候多做了一件事，把兩個 sleep gather 起來，然後看看運行的秒數，
+
+是非阻塞式的 3 秒!! 在之後的章節會討論 gather 這個函數！
+
+ex. event_loop.py
+```python
+import asyncio
+import time
 
 
-## async
+async def coroutine1():
+    await asyncio.sleep(1)
 
-定義 coroutine，它是一個特別的函數，類似於 python 中的 generators，
 
-可以利用 await 來掛起控制流，並且把控制流歸還給 event loop 調度，
+async def coroutine2():
+    await asyncio.sleep(3)
 
-在 def 前加上 async
 
-如何運行 coroutine：
-* 在另一個已經運行的協程中用 `await` 等待它
-* 通過 `ensure_future` 函數計劃它的執行
+async def coroutine3():
+    await asyncio.sleep(1)
+    await asyncio.sleep(3)
 
-***簡單來說只有 event loop 運行了，協程才會運行***
+
+async def coroutine4():
+    await asyncio.gather(asyncio.sleep(1), asyncio.sleep(3))
+
+
+loop1_start = time.time()
+loop1 = asyncio.get_event_loop()
+loop1.run_until_complete(asyncio.wait([coroutine1(), coroutine2()]))
+loop1_end = time.time()
+print(f'loop1 running time = {loop1_end - loop1_start} sec')  # 3 sec
+
+loop2_start = time.time()
+loop2 = asyncio.get_event_loop()
+loop2.run_until_complete(coroutine3())
+loop2_end = time.time()
+print(f'loop2 running time = {loop2_end - loop2_start} sec')  # 4 sec
+
+loop3_start = time.time()
+loop3 = asyncio.get_event_loop()
+loop3.run_until_complete(coroutine4())
+loop3_end = time.time()
+print(f'loop3 running time = {loop3_end - loop3_start} sec')  # 3 sec
+```
 
 ## await
-
-什麼是 future？ 
 
 為了執行 coroutine 我們必須把它註冊到 event loop 中，讓 event loop 調度，
 
@@ -173,6 +224,13 @@ await 做了什麼:
 * 產生一個結果給正在等它的協程
 * 引發一個異常給正在等它的協程
 
+於是我們就要來探討一下，在 event loop 中，遇到 await 的時候，流程會怎麼走!
+
+```python
+# 流程
+
+```
+
 ## 多個協程
 
 實際項目中，往往有多個協程，同時在一個 loop 裡運行。為了把多個協程交給 loop，需要藉助 asyncio.gather 函數。
@@ -185,9 +243,9 @@ gather 起聚合的作用，把多個 futures 包裝成單個 future，因為 lo
 
 run_forever 則是直到調用 stop() 才會返回。
 
-ex.
+ex. 
 ```bash
-$ python event_loop.py 
+$ python run_complete.py 
 >sleep 5 second
 >done
 $
@@ -204,7 +262,7 @@ $ python run_forever.py
 ```
 
 調用 stop
-```
+```bash
 $ python run_forever_and_stop.py 
 >sleep 3 second
 >done by sleep 3 second
