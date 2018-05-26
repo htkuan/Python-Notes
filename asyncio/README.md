@@ -226,8 +226,58 @@ await 做了什麼:
 
 於是我們就要來探討一下，在 event loop 中，遇到 await 的時候，流程會怎麼走!
 
+### flow of control
+
+1. the event loop is running in a thread
+2. the event loop get a task from queue
+3. run coroutine1 from task1
+4. coroutine1 call another coroutine( await <coroutine> )
+5. I/O blocking or not:
+    * yes: current coroutine1 gets suspended and control is passed back to the event loop.
+    * no: current coroutine1 gets suspended and context switch occurs.
+6. event loop gets next task from queue2, ...n
+7. then the event loop goes back to task 1 from where it left off
+
+大家先想想下面的腳本，在兩個 event loop 中，output 應該會打印出什麼順序！ 
+
+ex. work_flow1.py
 ```python
-# 流程
+import asyncio
+
+
+async def coroutine1():
+    print('in to coroutine1')
+    print('meet I/O block 1')
+    await asyncio.sleep(1)
+    print('return from I/O 1')
+    print('out of coroutine1')
+
+
+async def coroutine2():
+    print('in to coroutine2')
+    print('meet I/O block 2')
+    await asyncio.sleep(2)
+    print('return from I/O 2')
+    print('out of coroutine2')
+
+
+async def coroutine3():
+    print('in to coroutine3')
+    await coroutine1()
+    print('out of coroutine3')
+
+
+async def coroutine4():
+    print('in to coroutine4')
+    await coroutine2()
+    print('out of coroutine4')
+
+
+loop1 = asyncio.get_event_loop()
+loop1.run_until_complete(asyncio.wait([coroutine1(), coroutine2()]))
+print("")
+loop2 = asyncio.get_event_loop()
+loop2.run_until_complete(asyncio.wait([coroutine3(), coroutine4()]))
 
 ```
 
