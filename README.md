@@ -1,24 +1,49 @@
 # python_note
-some python package study notes
+some python study notes
 
-Main learning resources:
-><https://morvanzhou.github.io/>
 
-    莫煩python教學寫得非常的好,尤其有許多機器學習的教學
-    希望未來能有更多時間學習有關機器學習的東西!
+## topic discuss
 
-## links
-* [sklearn](https://github.com/htkuan/python_notes/blob/master/sklearn.ipynb)
-* [threading](https://github.com/htkuan/python_notes/blob/master/threading.ipynb)
-* [pandas](https://github.com/htkuan/python_notes/blob/master/pandas.ipynb)
-* [numpy](https://github.com/htkuan/python_notes/blob/master/numpy.ipynb)
-* [matplotlib](https://github.com/htkuan/python_notes/blob/master/matplotlib.ipynb)
-* [tkinter](https://github.com/htkuan/python_notes/blob/master/Tkinter.ipynb)
-* [functools](https://github.com/htkuan/python_notes/blob/master/functools.ipynb)
-* [abc](https://github.com/htkuan/python_notes/blob/master/abc.ipynb)
-* [Multiprocessing](https://github.com/htkuan/python_notes/blob/master/Multiprocessing.ipynb)
-* [generator](https://github.com/htkuan/python_notes/blob/master/generator.ipynb)
-* [asyncio](https://github.com/htkuan/Python-Notes/tree/master/asyncio)
-* [super()](https://github.com/htkuan/Python-Notes/tree/master/super.ipynb)
+* [pythonic](https://github.com/htkuan/Python-Notes/blob/master/Pythonic_tips.ipynb)
+* [generator](https://github.com/htkuan/Python-Notes/blob/master/generator.ipynb)
+* [super()](https://github.com/htkuan/Python-Notes/blob/master/super.ipynb)
+* [metaclass](https://github.com/htkuan/Python-Notes/blob/master/metaclass.ipynb)
+
+## python common module
+
+* [functools](https://github.com/htkuan/Python-Notes/blob/master/functools.ipynb)
+* [abc](https://github.com/htkuan/Python-Notes/blob/master/abc.ipynb)
+* [metaclass](https://github.com/htkuan/Python-Notes/blob/master/metaclass.ipynb)
 * [datetime](https://github.com/htkuan/Python-Notes/tree/master/datetime.ipynb)
+* [hashlib & base64](https://github.com/htkuan/Python-Notes/blob/master/hashlib_n_base64.ipynb)
 
+## asynchronous programming
+
+* [asyncio](https://github.com/htkuan/Python-Notes/tree/master/asyncio)
+* [aiohttp](https://github.com/htkuan/Python-Notes/blob/master/aiohttp.ipynb)
+
+* [threading](https://github.com/htkuan/Python-Notes/blob/master/threading.ipynb)
+* [Multiprocessing](https://github.com/htkuan/Python-Notes/blob/master/Multiprocessing.ipynb)
+
+## GUI
+
+* [tkinter](https://github.com/htkuan/Python-Notes/blob/master/Tkinter.ipynb)
+
+## data analysis
+
+* [pandas](https://github.com/htkuan/Python-Notes/blob/master/pandas.ipynb)
+* [numpy](https://github.com/htkuan/Python-Notes/blob/master/numpy.ipynb)
+* [matplotlib](https://github.com/htkuan/Python-Notes/blob/master/matplotlib.ipynb)
+
+## ML
+
+* [sklearn](https://github.com/htkuan/Python-Notes/blob/master/sklearn.ipynb)
+
+## Crawler
+
+* [selenium](https://github.com/htkuan/Python-Notes/blob/master/selenium.ipynb)
+
+## others third-party libraries
+
+* [pycrypto](https://github.com/htkuan/Python-Notes/blob/master/Pycrypto.ipynb)
+* [opencv3](https://github.com/htkuan/Python-Notes/blob/master/opencv3.ipynb)
