@@ -382,14 +382,3 @@ t = timer(3, lambda futu: print('Done'))
 
 可以試著看一下 timer.py 腳本，並且運行看看！
 
-## flow of control
-
-1. the event loop is running in a thread
-2. the event loop get a task from queue
-3. run coroutine1 from task1
-4. coroutine1 call another coroutine( await <coroutine> )
-5. I/O blocking or not:
-    * yes: current coroutine1 gets suspended and control is passed back to the event loop.
-    * no: current coroutine1 gets suspended and context switch occurs.
-6. event loop gets next task from queue2, ...n
-7. then the event loop goes back to task 1 from where it left off
