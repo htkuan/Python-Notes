@@ -6,6 +6,7 @@ some python study notes
 
 * [pythonic](https://github.com/htkuan/Python-Notes/blob/master/Pythonic_tips.ipynb)
 * [generator](https://github.com/htkuan/Python-Notes/blob/master/generator.ipynb)
+* [decorator](https://github.com/htkuan/Python-Notes/blob/master/decorator.ipynb)
 * [super()](https://github.com/htkuan/Python-Notes/blob/master/super.ipynb)
 * [metaclass](https://github.com/htkuan/Python-Notes/blob/master/metaclass.ipynb)
 
@@ -16,6 +17,7 @@ some python study notes
 * [metaclass](https://github.com/htkuan/Python-Notes/blob/master/metaclass.ipynb)
 * [datetime](https://github.com/htkuan/Python-Notes/tree/master/datetime.ipynb)
 * [hashlib & base64](https://github.com/htkuan/Python-Notes/blob/master/hashlib_n_base64.ipynb)
+* [enum](https://github.com/htkuan/Python-Notes/blob/master/enum.ipynb)
 
 ## asynchronous programming
 
